@@ -1,5 +1,5 @@
 import os
-from flask import Flask, request
+from flask import Flask, request, send_from_directory
 from flask_cors import CORS
 from dotenv import load_dotenv, find_dotenv
 
@@ -75,7 +75,17 @@ def create_app():
     app.register_blueprint(products_bp, url_prefix='/api')
     app.register_blueprint(contact_bp, url_prefix='/api')
     app.register_blueprint(blogs_bp, url_prefix='/api')
-    
+
+    upload_root = os.path.join(os.path.dirname(__file__), 'uploads')
+    os.makedirs(upload_root, exist_ok=True)
+
+    @app.route('/uploads/<path:filename>')
+    def uploaded_file(filename):
+        resp = send_from_directory(upload_root, filename)
+        # Ensure byte-range support header is present for media streaming
+        resp.headers.setdefault('Accept-Ranges', 'bytes')
+        return resp
+
     return app
 
 # Create app instance
@@ -87,3 +97,4 @@ if __name__ == '__main__':
     debug = os.getenv('FLASK_ENV', 'development') == 'development'
     
     app.run(host=host, port=port, debug=debug)
+

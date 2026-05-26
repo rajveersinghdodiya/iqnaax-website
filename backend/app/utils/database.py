@@ -120,6 +120,8 @@ def init_database():
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             title TEXT NOT NULL,
             description TEXT,
+            author TEXT,
+            publish_date TEXT,
             content TEXT,
             image_path TEXT,
             image_url TEXT,
@@ -129,6 +131,19 @@ def init_database():
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     ''')
+
+    # Ensure any missing blog columns are added after schema changes
+    cursor.execute('PRAGMA table_info(blogs)')
+    existing_blog_columns = {row[1] for row in cursor.fetchall()}
+    required_blog_columns = {
+        'author': 'TEXT',
+        'publish_date': 'TEXT'
+    }
+    for column_name, column_type in required_blog_columns.items():
+        if column_name not in existing_blog_columns:
+            cursor.execute(
+                f'ALTER TABLE blogs ADD COLUMN {column_name} {column_type}'
+            )
 
     # Create admin_users table for sub-admins and super admin
     cursor.execute('''
